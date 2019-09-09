@@ -1,5 +1,6 @@
-package com.github.sejoung.integration;
+package com.github.sejoung.integration.endpoint;
 
+import com.github.sejoung.integration.service.HelloWorldService;
 import java.io.File;
 import java.io.FileInputStream;
 import org.springframework.integration.annotation.MessageEndpoint;

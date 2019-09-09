@@ -1,5 +1,6 @@
 package com.github.sejoung.integration;
 
+import com.github.sejoung.integration.gateway.SampleMessageGateway;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 

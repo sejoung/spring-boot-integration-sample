@@ -1,5 +1,6 @@
-package com.github.sejoung.integration;
+package com.github.sejoung.integration.service;
 
+import com.github.sejoung.integration.constants.ServiceProperties;
 import org.springframework.stereotype.Service;
 
 @Service

@@ -1,4 +1,4 @@
-package com.github.sejoung.integration;
+package com.github.sejoung.integration.constants;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.jmx.export.annotation.ManagedAttribute;

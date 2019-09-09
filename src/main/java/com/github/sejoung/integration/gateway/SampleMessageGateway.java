@@ -1,4 +1,4 @@
-package com.github.sejoung.integration;
+package com.github.sejoung.integration.gateway;
 
 import org.springframework.integration.annotation.MessagingGateway;
 
