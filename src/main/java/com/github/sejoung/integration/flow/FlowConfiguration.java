@@ -12,6 +12,7 @@ import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.SourcePollingChannelAdapterSpec;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.FileWritingMessageHandler;
+import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
 
 @Configuration
 public class FlowConfiguration {
@@ -21,6 +22,16 @@ public class FlowConfiguration {
 		FileReadingMessageSource reader = new FileReadingMessageSource();
 		reader.setDirectory(new File("target/input"));
 		return reader;
+	}
+
+	public DefaultFtpSessionFactory ftpSessionFactory() {
+		DefaultFtpSessionFactory ftpSessionFactory = new DefaultFtpSessionFactory();
+
+		//ftpSessionFactory
+
+
+		return ftpSessionFactory;
+
 	}
 
 	@Bean
