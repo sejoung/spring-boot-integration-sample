@@ -1,58 +1,64 @@
 package com.github.sejoung.integration.flow;
 
-import com.github.sejoung.integration.endpoint.SampleEndpoint;
+import static org.apache.commons.net.ftp.FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE;
+
 import java.io.File;
-import java.util.function.Consumer;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
-import org.springframework.integration.dsl.Pollers;
-import org.springframework.integration.dsl.SourcePollingChannelAdapterSpec;
-import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.FileWritingMessageHandler;
+import org.springframework.integration.ftp.dsl.Ftp;
+import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
+import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 
+@Slf4j
 @Configuration
 public class FlowConfiguration {
 
 	@Bean
-	public FileReadingMessageSource fileReader() {
-		var reader = new FileReadingMessageSource();
-		reader.setDirectory(new File("target/input"));
-		return reader;
+	IntegrationFlow inbound(DefaultFtpSessionFactory ftpSf) {
+		var localDirectory = new File(new File(System.getProperty("user.home"), "Desktop"),
+				LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+
+		var spec = Ftp
+				.inboundAdapter(ftpSf)
+				.autoCreateLocalDirectory(true)
+				.patternFilter("hello.txt")
+				.localDirectory(localDirectory);
+		return IntegrationFlows
+				.from(spec, pc -> pc.poller(pm -> pm.fixedRate(1, TimeUnit.SECONDS)))
+				.handle((file, messageHeaders) -> {
+					log.info("new file: " + file + ".");
+
+
+					messageHeaders.forEach((k, v) -> log.info(k + ':' + v));
+					return null;
+				})
+				.get();
 	}
+
 
 	@Bean
-	public DirectChannel inputChannel() {
-		return new DirectChannel();
+	DefaultFtpSessionFactory defaultFtpSessionFactory(
+			@Value("${ftp.username}") String username,
+			@Value("${ftp.password}") String pw,
+			@Value("${ftp.host}") String host,
+			@Value("${ftp.port}") int port) {
+		DefaultFtpSessionFactory defaultFtpSessionFactory = new DefaultFtpSessionFactory();
+		defaultFtpSessionFactory.setPassword(pw);
+		defaultFtpSessionFactory.setUsername(username);
+		defaultFtpSessionFactory.setHost(host);
+		defaultFtpSessionFactory.setPort(port);
+		defaultFtpSessionFactory.setControlEncoding("utf-8");
+		defaultFtpSessionFactory.setClientMode(PASSIVE_LOCAL_DATA_CONNECTION_MODE);
+
+		return defaultFtpSessionFactory;
 	}
 
-	@Bean
-	public DirectChannel outputChannel() {
-		return new DirectChannel();
-	}
-
-	@Bean
-	public FileWritingMessageHandler fileWriter() {
-		var writer = new FileWritingMessageHandler(new File("target/output"));
-		writer.setExpectReply(false);
-		return writer;
-	}
-
-	@Bean
-	public IntegrationFlow integrationFlow(SampleEndpoint endpoint) {
-		return IntegrationFlows.from(fileReader(), new FixedRatePoller()).channel(inputChannel())
-				.handle(endpoint)
-				.channel(outputChannel()).handle(fileWriter()).get();
-	}
-
-	private static class FixedRatePoller implements Consumer<SourcePollingChannelAdapterSpec> {
-
-		@Override
-		public void accept(SourcePollingChannelAdapterSpec spec) {
-			spec.poller(Pollers.fixedRate(500));
-		}
-
-	}
 }
