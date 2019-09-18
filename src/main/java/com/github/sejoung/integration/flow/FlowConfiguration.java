@@ -12,15 +12,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway.Option;
 import org.springframework.integration.ftp.dsl.Ftp;
-import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
-import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
+import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
-import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.messaging.MessageChannel;
 
 @Slf4j
@@ -28,7 +28,8 @@ import org.springframework.messaging.MessageChannel;
 public class FlowConfiguration {
 
 	@Bean
-	IntegrationFlow inbound(DefaultFtpSessionFactory ftpSf, FTPFileEndpoint ftpFileEndpoint, MessageChannel incoming) {
+	IntegrationFlow inbound(DefaultFtpSessionFactory ftpSf, FTPFileEndpoint ftpFileEndpoint,
+			MessageChannel ftpGet) {
 		var localDirectory = new File(new File(System.getProperty("user.home"), "Desktop"),
 				LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
 
@@ -40,27 +41,27 @@ public class FlowConfiguration {
 
 		return IntegrationFlows
 				.from(spec, pc -> pc.poller(pm -> pm.fixedRate(1, TimeUnit.SECONDS)))
-				.handle(ftpFileEndpoint).channel(incoming).get();
+				.handle(ftpFileEndpoint).channel(ftpGet).get();
 	}
-
 
 	@Bean
 	IntegrationFlow outbound(DefaultFtpSessionFactory ftpSf,
 			FTPUploadFileEndpoint ftpUploadFileEndpoint) {
 
 		return IntegrationFlows
-				.from(incoming())
+				.from(ftpGet())
 				.handle(ftpUploadFileEndpoint).get();
 	}
 
 	@Bean
-	MessageChannel incoming() {
+	MessageChannel ftpGet() {
 		return MessageChannels.direct().get();
 	}
 
 	@Bean
 	FtpRemoteFileTemplate ftpRemoteFileTemplate(DefaultFtpSessionFactory dsf) {
-		return new FtpRemoteFileTemplate(dsf);
+		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(dsf);
+		return template;
 	}
 
 	@Bean
