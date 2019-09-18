@@ -31,9 +31,6 @@ public class FtpTemplateConfiguration {
 
 
 
-	//@Bean
-	FtpRemoteFileTemplate ftpRemoteFileTemplate(DefaultFtpSessionFactory dsf) {
-		return new FtpRemoteFileTemplate(dsf);
-	}
+
 
 }
