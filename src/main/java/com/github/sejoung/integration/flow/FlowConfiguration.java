@@ -2,6 +2,7 @@ package com.github.sejoung.integration.flow;
 
 import static org.apache.commons.net.ftp.FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE;
 
+import com.github.sejoung.integration.endpoint.FTPFileEndpoint;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -13,16 +14,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.ftp.dsl.Ftp;
-import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
-import org.springframework.integration.metadata.SimpleMetadataStore;
 
 @Slf4j
 @Configuration
 public class FlowConfiguration {
 
 	@Bean
-	IntegrationFlow inbound(DefaultFtpSessionFactory ftpSf) {
+	IntegrationFlow inbound(DefaultFtpSessionFactory ftpSf, FTPFileEndpoint ftpFileEndpoint) {
 		var localDirectory = new File(new File(System.getProperty("user.home"), "Desktop"),
 				LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
 
@@ -33,14 +32,7 @@ public class FlowConfiguration {
 				.localDirectory(localDirectory);
 		return IntegrationFlows
 				.from(spec, pc -> pc.poller(pm -> pm.fixedRate(1, TimeUnit.SECONDS)))
-				.handle((file, messageHeaders) -> {
-					log.info("new file: " + file + ".");
-
-
-					messageHeaders.forEach((k, v) -> log.info(k + ':' + v));
-					return null;
-				})
-				.get();
+				.handle(ftpFileEndpoint).get();
 	}
 
 
