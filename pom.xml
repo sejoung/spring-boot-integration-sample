@@ -41,7 +41,19 @@
       <groupId>org.springframework.integration</groupId>
       <artifactId>spring-integration-ftp</artifactId>
     </dependency>
-		<!-- Optional -->
+    <!-- jpa 추가 -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <!-- h2 -->
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- Optional -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
